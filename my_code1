@@ -1,0 +1,182 @@
+#include "stdio.h"
+#include "stdlib.h"
+#include "hal_gpio.h"
+#include "hal_sleep_driver.h"
+#include "stdarg.h"
+#include  "hal_gpt.h"
+#include "hal_uart.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "task_def.h"
+#include "hal_platform.h"
+#include "apb_proxy.h"
+#include "ril.h"
+
+
+
+
+typedef unsigned char uint8_t;
+#define  function 1
+
+
+int8_t debug_print(const char *fmt, ...)
+{ 
+    int n;   
+    va_list ap;   
+    apb_proxy_at_cmd_result_t response; 
+    char response_data[100];  
+    va_start(ap, fmt); 
+    n = vsnprintf(response_data,100,fmt,ap);   
+    va_end(ap);      
+    if(n >-1 && n < 100) 
+    {      
+        response.result_code = APB_PROXY_RESULT_UNSOLICITED;   
+        response.pdata = response_data;  
+        response.length = strlen(response.pdata);   
+        response.cmd_id = APB_PROXY_INVALID_CMD_ID; 
+        apb_proxy_send_at_cmd_result(&response);   
+        return 1; 
+     }    
+    return 0;  
+}
+
+
+
+void  gpio_application(void)
+{   
+    hal_gpt_init(HAL_GPT_1);
+    hal_gpt_register_callback(HAL_GPT_1,gpio_application,NULL);
+    hal_gpt_start_timer_ms(HAL_GPT_1,1000,HAL_GPT_TIMER_TYPE_ONE_SHOT);
+    hal_gpio_init(HAL_GPIO_26);
+    hal_pinmux_set_function(HAL_GPIO_26,1);
+    hal_gpio_set_direction(HAL_GPIO_26,HAL_GPIO_DIRECTION_OUTPUT);
+    hal_gpio_set_output(HAL_GPIO_26_PMU_GOTO_SLEEP,HAL_GPIO_DATA_HIGH);
+}
+
+
+
+
+
+
+
+#if 1
+
+
+void uart_poll_application(void)
+{    char  buffer[10];
+     char data;
+     while(1)
+     {  
+        hal_uart_receive_polling(HAL_UART_3,buffer,10);
+        hal_uart_send_polling(HAL_UART_3,buffer,10);
+        vTaskDelay(1000 / portTICK_RATE_MS);
+     }
+    //vTaskDelete(NULL);
+}   
+
+
+
+
+
+
+
+#endif
+
+#if 0
+
+static volatile uint32_t receive_notice=0;
+static volatile uint32_t send_notice=0;
+static char rx_vfifo_buffer[512] __attribute__ ((section(".noncached_zidata")));
+static char tx_vfifo_buffer[512] __attribute__ ((section(".noncached_zidata")));
+static void user_uart_callback(hal_uart_callback_event_t status, void *user_data)
+{
+   if(status == HAL_UART_EVENT_READY_TO_WRITE)
+       send_notice = 1;
+   else if(status == HAL_UART_EVENT_READY_TO_READ)
+       receive_notice = 1;
+}
+static void uart_dma_application(void)
+{
+   hal_uart_config_t uart_config;
+    char buffer[64];
+   char *pbuf;
+   uint32_t left, snd_cnt, rcv_cnt;
+   hal_uart_dma_config_t dma_config;
+   char uart_prompt[] = "UART DMA mode begin\n";
+   uart_config.baudrate = HAL_UART_BAUDRATE_921600;
+   uart_config.parity = HAL_UART_PARITY_NONE;
+   uart_config.stop_bit = HAL_UART_STOP_BIT_1;
+   uart_config.word_length = HAL_UART_WORD_LENGTH_8;
+   hal_uart_init(HAL_UART_3, &uart_config);
+   dma_config.receive_vfifo_alert_size = 50;
+   dma_config.receive_vfifo_buffer = rx_vfifo_buffer;
+   dma_config.receive_vfifo_buffer_size = 512;
+   dma_config.receive_vfifo_threshold_size = 128;
+   dma_config.send_vfifo_buffer = tx_vfifo_buffer;
+   dma_config.send_vfifo_buffer_size = 512;
+   dma_config.send_vfifo_threshold_size = 51;
+   hal_uart_set_dma(HAL_UART_3, &dma_config);
+   hal_uart_register_callback(HAL_UART_3, user_uart_callback, NULL);
+   snd_cnt = hal_uart_send_dma(HAL_UART_3, uart_prompt, sizeof(uart_prompt));
+   left = 64;
+   pbuf = buffer;
+   while(1){
+       //Note: In this sample code, while(1) loop is used to wait for the interrupt,
+       //but user can do anything before the interrupt is triggered.
+       rcv_cnt = hal_uart_receive_dma(HAL_UART_3, pbuf, left);
+       left -= rcv_cnt;
+       pbuf += rcv_cnt;
+       if(left == 0)
+           break;
+       while(!receive_notice);
+       receive_notice = 0;
+   }
+   left = 64;
+   pbuf = buffer;
+   while(1){
+       //Note: In this sample code, while(1) loop is used to wait for the interrupt,
+       //but user can do anything before the interrupt is triggered.
+       snd_cnt = hal_uart_send_dma(HAL_UART_3, pbuf, left);
+       left -= snd_cnt;
+       pbuf += snd_cnt;
+       if(left == 0)
+           break;
+       while(!send_notice);
+       send_notice = 0;
+   }
+   hal_uart_deinit(HAL_UART_3);
+}
+
+
+#endif
+
+
+
+static void my_function(void *para)
+{
+     
+    
+     //gpio_application();
+     //gnss_fota_uart_init();
+     //gnss_fota_uart_get_byte();
+     uart_poll_application();
+    //uart_dma_application();
+    //uart_init();
+    
+       
+    vTaskDelay(1000 / portTICK_RATE_MS);
+    vTaskDelete(NULL);
+
+
+}
+
+void  realize_function(void)
+{
+    xTaskCreate( my_function ,
+       "function", 
+        (1024 * 2)/sizeof(uint8_t),
+        NULL,
+        1,
+        NULL);
+}
+

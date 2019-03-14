@@ -1,0 +1,31 @@
+#include <math.h>
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+/*90分高Ａ低*/
+ 
+ int  n,k,i;
+ int fun(int x,int y)
+{  return  (x>y)?x:y ; }
+     
+main()
+{ 
+  int a=90,b=60,i,k;
+  printf("输入一个数：");
+  scanf("%d\n",&i);
+    k=fun(i,a);
+if(k==i)  printf("A\n");
+if(k==a)   printf("B\n");
+}
+/*例十五*/
+#include<stdio.h>
+int main()
+{
+    int score;
+    char grade;
+    printf("请输入分数： ");
+    scanf("%d",&score);
+    grade=(score>=90)?'A':((score>=60)?'B':'C');
+    printf("%c\n",grade);
+    return 0;
+}

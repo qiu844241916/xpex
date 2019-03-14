@@ -1,0 +1,44 @@
+#include  "stdio.h"
+#include   "string.h"
+
+
+char* _itoa(int value, char* string, int radix)
+{
+    char zm[37] = "0123456789abcdefghijklmnopqrstuvwxyz";
+    char aa[10] = {0};
+
+    int sum = value;
+    char* cp = string;
+    int i = 0;
+		int j;
+
+    if (value < 0) {
+        return string;
+    } else if (0 == value) {
+        char *res_str = "0";
+
+        strncpy(string, res_str, strlen(res_str));
+        return string;
+    } else {
+        while (sum > 0) {
+            aa[i++] = zm[sum%radix];
+            sum/=radix;
+        }
+    }
+
+    for (j=i-1; j>=0;j--) {
+        *cp++ = aa[j];
+    }
+		
+    *cp='\0';
+    return string;
+}
+
+
+main()
+{
+  int  number=123456;
+  char  h[35];
+  _itoa(numer,h,10);
+printf("%s\n",h);
+}

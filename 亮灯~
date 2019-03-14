@@ -1,0 +1,37 @@
+#include "stdio.h"
+#include "stdlib.h"
+#include "hal_gpio.h"
+#include "hal_sleep_driver.h"
+#include "stdarg.h"
+
+
+
+void  gpio_application(void)
+{
+    hal_gpio_init(HAL_GPIO_26);
+    hal_pinmux_set_function(HAL_GPIO_26,0);
+    hal_gpio_set_direction(HAL_GPIO_26,HAL_GPIO_DIRECTION_OUTPUT);
+    hal_gpio_set_output(HAL_GPIO_26,HAL_GPIO_DATA_HIGH);
+}
+
+
+
+#include "stdio.h"
+#include "stdlib.h"
+#include "hal_gpio.h"
+#include "hal_sleep_driver.h"
+#include "stdarg.h"
+#include  "hal_gpt.h"
+
+
+
+void  gpio_application(void)
+{   
+    hal_gpt_init(HAL_GPT_1);
+    hal_gpt_register_callback(HAL_GPT_1,gpio_application,NULL);
+    hal_gpt_start_timer_ms(HAL_GPT_1,100,HAL_GPT_TIMER_TYPE_ONE_SHOT);
+    hal_gpio_init(HAL_GPIO_26);
+    hal_pinmux_set_function(HAL_GPIO_26,0);
+    hal_gpio_set_direction(HAL_GPIO_26,HAL_GPIO_DIRECTION_OUTPUT);
+    hal_gpio_set_output(HAL_GPIO_26,HAL_GPIO_DATA_HIGH);
+}

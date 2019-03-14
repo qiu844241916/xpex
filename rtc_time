@@ -1,0 +1,48 @@
+#define BASE_YEAR 2000
+set_current_time(uint16_t year, uint8_t mon, uint8_t day, uint8_t hour, uint8_t min, uint8_t sec)
+{  
+     debug_print("123");
+    hal_rtc_time_t time;
+    if(HAL_RTC_STATUS_OK != hal_rtc_init()) 
+    {
+        gpio_init(26,1);
+    }
+    // The user has to define the base year and the RTC year is defined
+    // as an offset. For example, define the base year as 2000 and assign 15 to the RTC year to represent the year of 2015.
+    time.rtc_year = year - BASE_YEAR;
+    time.rtc_mon = mon;
+    time.rtc_day = day;
+    time.rtc_hour = hour;
+    time.rtc_min = min;
+    time.rtc_sec = sec;
+    // Set the RTC current time.
+    if(HAL_RTC_STATUS_OK != hal_rtc_set_time(&time))
+     { 
+         gpio_init(26,1);
+     }
+      return 0;
+ }
+
+get_current_time(uint8_t *year, uint8_t *mon, uint8_t *day, uint8_t *hour, uint8_t *min, uint8_t *sec)
+ {  debug_print("123");
+    hal_rtc_time_t time;
+    debug_print("%s",year);
+    if(HAL_RTC_STATUS_OK != hal_rtc_init()) 
+    {
+      gpio_init(29,1);
+    }
+    if(HAL_RTC_STATUS_OK != hal_rtc_get_time(&time))
+     {
+       gpio_init(29,1);
+     }
+    // The user has to define the base year and the RTC year is defined
+    // as an offset. For example, define the base year as 2000 and assign 15 to the RTC year to represent the year of 2015.
+    *year = time.rtc_year + BASE_YEAR;
+    *mon = time.rtc_mon;
+    *day = time.rtc_day;
+    *hour = time.rtc_hour;
+    *min = time.rtc_min;
+    *sec = time.rtc_sec;
+    return 0;
+}
+

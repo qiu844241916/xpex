@@ -1,0 +1,19 @@
+#include "math.h"
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+
+main()
+{  
+  int s=0,a,i,j=0;
+  printf("enter a digital:");
+  scanf("%d\n",&i);
+for(a=0;a<i;a++)
+{
+j+=pow(10,a);
+s+=j;
+}
+printf("%d\n",s);
+
+
+}

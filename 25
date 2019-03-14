@@ -1,0 +1,13 @@
+#include "stdio.h"
+
+main()
+{
+long int  i,sum,mul;
+for(i=1,mul=1,sum=0;i<=20;i++)
+   {mul*=i;
+
+   sum+=mul;
+if (i==20)
+{ printf("%ld\n",sum);}
+}
+}

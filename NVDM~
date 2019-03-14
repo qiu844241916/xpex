@@ -1,0 +1,37 @@
+u8 write_NVDM(const char *integer,const char * text,const char *addres, const char *lifetime)
+{   char temp1[100]={0};
+	snprintf(temp,sizeof(temp),"AT+ENVDM=%s,%s,%s,%s,%s",integer,text,address,length,data);
+  if(!SND_AT_CMD(temp,"OK",3*S))
+	{
+	debug_print ("write success");
+	return 0;	
+	}	
+	debug_print ("write failure");
+	return 1;
+}
+
+
+u8 read_NVDM(const char *integer,const char * text,const char *addres)
+{   
+    char temp2[100]={0};
+    snprintf(temp,sizeof(temp),"AT+ENVDM=%s,%s,%s,%s,%s",integer,text,address);
+if(!SND_AT_CMD(temp,"OK",3*S))
+	{  
+		p = strtok ((char*)USART0_RX_BUF,"\"");
+		p = strtok (NULL,"\n");
+		get_data_from_hex(temp3,P,strlen(temp3))
+	  debug_print ("write success");
+	return 0;	
+	}	
+	debug_print ("write failure")
+	return 1;
+}
+
+
+read_and_write_NVDM(1,CTCC,ADDRESS1,15,"3138302e3130312e3134372e313135");
+read_and_write_NVDM(1,OC,ADDRESS2,15,"3133392e3135392e3134302e3334");
+
+read_and_write_NVDM(0,CTCC,ADDRESS1);
+read_and_write_NVDM(0,OC,ADDRESS2);
+
+if(!read_and_write_NVDM(0,CTCC,ADDRESS1))

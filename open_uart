@@ -1,0 +1,40 @@
+
+char  temp_receive[6]={0};
+bool Interrupt_flag_bit = FALSE;
+bool downstream_data = FALSE;
+
+
+static void opencpu_uart(void *arg)
+{
+        
+                  
+    apb_proxy_parse_cmd_param_t parse_cmd = {0};
+    uint8_t temp[10]={0};
+   while(1){
+       if(Interrupt_flag_bit == TRUE){
+            
+
+            if(temp_receive[0] == 0x22){
+                debug_print("receive ok");
+                downstream_data = TRUE;
+              
+                vTaskDelay(500 / portTICK_RATE_MS);
+              
+                temp[0]=0x22;temp[1]=0x1D;temp[2]=0xAA;
+                temp[3]=0x00;temp[4]=0x00;temp[5]=0x17;
+                hal_uart_send_polling(HAL_UART_3,temp,6); 
+                
+            }else{
+                debug_print("receive error");
+               
+                vTaskDelay(500 / portTICK_RATE_MS);
+                
+                    
+                temp[0]=0x22;temp[1]=0x1D;temp[2]=0x55;
+                temp[3]=0x00;temp[4]=0x00;temp[5]=0x6C;
+                hal_uart_send_polling(HAL_UART_3,temp,6); 
+                hal_uart_receive_polling(HAL_UART_3,temp_receive,6);
+            }
+       }
+   }
+}

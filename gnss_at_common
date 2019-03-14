@@ -1,0 +1,29 @@
+void gnss_at_command_app_open(){
+
+    static bool gnss_is_power_on = false;
+    
+    GNSSLOGD("gnss_at_command_app_open\n");	
+
+    if (!gnss_is_power_on){
+        gnss_init(gnss_at_command_driver_callback_func);
+#ifdef GNSS_SLEEP_HANDLER
+        if (sleep_handler == 0xFF)
+            sleep_handler = hal_sleep_manager_set_sleep_handle("ATGSH");
+        sleep_timer = xTimerCreate( "gnss_sleep_timer",
+                        (50/portTICK_PERIOD_MS), 
+                        pdFALSE, 
+                        NULL, 
+                        gnss_at_command_sleep_timer_handle_func);
+        xTimerStop(sleep_timer, 0);
+        GNSSLOGD("gnss get sleep handle: %d, %d\r\n", sleep_handler, sleep_timer);
+#endif
+        gnss_is_power_on = true;
+    }
+    
+    xTaskCreate((TaskFunction_t) gnss_at_command_task_main, 
+                GNSS_DEMO_TASK_NAME, 
+                GNSS_DEMO_TASK_STACK_SIZE/(( uint32_t )sizeof( StackType_t )), 
+                NULL, 
+                GNSS_DEMO_TASK_PRIO, 
+                &gnss_at_command_task_handler);
+}

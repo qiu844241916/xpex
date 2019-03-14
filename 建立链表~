@@ -1,0 +1,20 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+void main()
+{
+ struct node
+{ int  date;
+  struct node *next;
+}*head,*p,*q;
+p=(struct node *)malloc(sizeof(struct node));
+  p->date=10;
+head->p;
+q=(struct node *)malloc(sizeof(struct node));
+  q->date=20;
+  q->next=NULL;
+  P->next=q;
+free(P);
+free(q);
+}
+

@@ -1,0 +1,18 @@
+#include "stdio.h"
+main()
+{ 
+ char n;
+printf("enter first a char:");
+scanf("%c\n",&n);
+getchar();
+  switch (n)
+{
+ case 'm': printf("monday");break;
+ case 'k': printf("tuesday");break;                                                                                               
+ case 'w': printf("wednesday");break;
+ case 't': printf("thursday");break;
+ case 'f': printf("friday");break;
+ case 'g': printf("saturday");break;
+ case 's': printf("sunday");break;
+} 
+}

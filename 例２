@@ -1,0 +1,28 @@
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+
+main ()
+{  float i,sum;
+   printf("输入当月利润:");
+   scanf("%f\n",&i);
+  if(i<=10)
+   {sum=i*0.1;
+printf("%f\n",sum);}
+else if(i<=20)
+    { sum=(i-10)*0.075+1;
+printf("%f\n",sum);}
+else  if(i<=40)
+     {sum=(i-20)*0.05;
+printf("%f\n",sum);}
+else  if(i<=60)
+     {sum=(i-40)*0.03;
+printf("%f\n",sum);}
+else  if(i<=100)
+     {sum=(i-60)*0.015;
+printf("%f\n",sum);}
+else  if(100<=i)
+     {sum=(i-100)*0.01;
+printf("%f\n",sum);}
+else  printf("错误");
+}

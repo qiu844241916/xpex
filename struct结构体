@@ -1,0 +1,16 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+void main()
+{
+struct student
+{ int num;
+  char name[20];
+char sex;
+float score;
+};
+struct student stu[3]={{1001,"zhang",'m',60},{1002,"peng",'m',70},{1003,"huang",'w',80}};
+struct student *p=stu;
+p->name;
+printf("%s\n",p->name);
+}

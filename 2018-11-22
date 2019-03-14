@@ -1,0 +1,416 @@
+#include "stdio.h"
+#include "stdlib.h"
+#include "hal_gpio.h"
+#include "hal_sleep_driver.h"
+#include "stdarg.h"
+#include  "hal_gpt.h"
+#include "hal_uart.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "task_def.h"
+#include "hal_platform.h"
+#include "apb_proxy.h"
+#include "ril.h"
+#include "auto_register.h"
+
+typedef unsigned char uint8_t;
+#define  function 1
+uint8_t  *nb_imei_number;
+uint8_t  *nb_imsi_number;
+
+//静态变量定义
+static volatile uint32_t receive_notice=0;
+static volatile uint32_t send_notice=0;
+static char rx_vfifo_buffer[512] __attribute__ ((section(".noncached_zidata")));
+static char tx_vfifo_buffer[512] __attribute__ ((section(".noncached_zidata")));
+static void user_uart_callback(hal_uart_callback_event_t status, void *user_data)
+{  if(status == HAL_UART_EVENT_READY_TO_WRITE)
+       send_notice = 1;
+   else if(status == HAL_UART_EVENT_READY_TO_READ)
+       receive_notice = 1;
+}
+
+
+static int32_t request_power_saving_mode(ril_cmd_response_t *rsp)
+{
+
+
+   return 0;
+    
+}
+
+
+
+//十六进制的数据转换成十进制
+void get_data_to_hex(char *out, char *in, int len) // "866256" -> "383636323536"
+{
+    int i;
+    for (i = 0; i < len; i++) {
+        sprintf(out + (i * 2), "%x", in[i]);
+    }
+}
+
+
+
+
+
+// 亮灯的封装函数
+void gpio_init(hal_gpio_pin_t x,hal_gpio_data_t y)
+{
+    hal_gpio_init(x);
+    hal_pinmux_set_function(x, 0); 
+    hal_gpio_set_direction(x, HAL_GPIO_DIRECTION_OUTPUT);
+    hal_gpio_set_output(x, y);
+
+}
+
+
+
+//DMA下uart口配置
+#if 1
+void   dma_uart_config(void)
+  {   
+   
+   hal_uart_dma_config_t dma_config;
+   hal_uart_deinit(HAL_UART_3);
+   hal_uart_config_t uart_config;
+   uart_config.baudrate = HAL_UART_BAUDRATE_115200;
+   uart_config.parity = HAL_UART_PARITY_NONE;
+   uart_config.stop_bit = HAL_UART_STOP_BIT_1;
+   uart_config.word_length = HAL_UART_WORD_LENGTH_8;
+   hal_uart_init(HAL_UART_3, &uart_config);
+   dma_config.receive_vfifo_alert_size = 50;
+   dma_config.receive_vfifo_buffer = rx_vfifo_buffer;
+   dma_config.receive_vfifo_buffer_size = 512;
+   dma_config.receive_vfifo_threshold_size = 128;
+   dma_config.send_vfifo_buffer =  tx_vfifo_buffer ;
+   dma_config.send_vfifo_buffer_size = 512;
+   dma_config.send_vfifo_threshold_size = 30;
+   hal_uart_set_dma(HAL_UART_3, &dma_config);
+   hal_uart_register_callback(HAL_UART_3, user_uart_callback, NULL);
+    
+   }
+
+
+
+
+#endif
+//打印函数
+#if 1
+int8_t debug_print(const char *fmt, ...)
+{ 
+    int n;   
+    va_list ap;   
+    //apb_proxy_at_cmd_result_t response; 
+    char response_data[100];
+    va_start(ap, fmt); 
+    n = vsnprintf(response_data,100,fmt,ap);
+    va_end(ap);      
+    if(n >-1 && n < 100) 
+    {   
+        hal_uart_send_dma(HAL_UART_3,response_data,strlen(response_data));
+        //response.result_code = APB_PROXY_RESULT_UNSOLICITED;   
+        //response.pdata = response_data;  
+        //response.length = strlen(response.pdata);   
+        //response.cmd_id = APB_PROXY_INVALID_CMD_ID; 
+        //apb_proxy_send_at_cmd_result(&response);   
+        return 1; 
+     }    
+    return 0;  
+}
+
+//psm接口
+void PSM_Call_interface(bool parameter){
+    ril_power_saving_mode_setting_req_t req_psm;
+      
+    if(parameter == 1)
+    {  
+        req_psm.mode = 1;
+        req_psm.req_act_time = "";
+        req_psm.req_gprs_rdy_tmr = "";
+        req_psm.req_prdc_rau = "00011000";
+        req_psm.req_prdc_tau = "00000000";
+        ril_request_power_saving_mode_setting(RIL_EXECUTE_MODE ,&req_psm,request_power_saving_mode,NULL); 
+        debug_print("123");
+    }
+    
+    else
+    {
+        req_psm.mode = 0;
+        req_psm.req_act_time = "";
+        req_psm.req_gprs_rdy_tmr = "";
+        req_psm.req_prdc_rau = "";
+        req_psm.req_prdc_tau = "";
+        ril_request_power_saving_mode_setting(RIL_EXECUTE_MODE ,&req_psm,request_power_saving_mode,NULL);
+    }
+}
+
+
+
+
+
+#if 0
+
+//获取ip的回调函数
+static int32_t ip_callback(ril_cmd_response_t *cmd_response)
+{
+    ril_show_pdp_address_rsp_t *response = (ril_show_pdp_address_rsp_t *)cmd_response->cmd_param;
+    if (cmd_response->res_code == RIL_RESULT_CODE_OK && response != NULL)
+    
+    { 
+        uint8_t idx_len;
+        uint8_t idx[15];
+        idx_len = strlen(response->cid_addr);
+        memcpy(idx,response->cid_addr,idx_len);
+        debug_print("ip:%s\r\n",idx);
+    }
+
+
+return 0;
+}
+
+#endif 
+
+
+#if 1
+//IMEI码回调函数
+static uint8_t imei[16];
+static int32_t query_imei_callback(ril_cmd_response_t *rsp)
+{   
+    uint8_t imei_len = 0;
+    ril_serial_number_rsp_t *param = (ril_serial_number_rsp_t*)rsp->cmd_param;
+
+    if (rsp->res_code == RIL_RESULT_CODE_OK && param!= NULL)
+    {
+        imei_len = strlen(param->value.imei);     
+        memcpy(imei, param->value.imei,(imei_len > 15)? 15 : imei_len);
+        debug_print("nb_imei_number:%s\n",imei);
+    } 
+    return 0;
+}
+
+
+
+
+#endif
+//IMSI码回调函数
+static uint8_t imsi[16];
+static int32_t query_imsi_callback(ril_cmd_response_t *rsp)
+{
+    uint8_t imsi_len = 0;
+    ril_imsi_rsp_t *param = (ril_imsi_rsp_t*)rsp->cmd_param;
+    
+    if (rsp->res_code == RIL_RESULT_CODE_OK && param!= NULL) {
+        
+        imsi_len = strlen(param->imsi);
+        
+        memcpy(imsi, param->imsi, (imsi_len > 15)? 15 : imsi_len);
+
+        debug_print("nb_imsi_number:%s\n",imsi);
+    } 
+    return 0;
+}
+
+
+
+//CSQ回调函数
+static int rssi;
+static int32_t query_csq_callback(ril_cmd_response_t *rsp)
+{
+    ril_signal_quality_rsp_t *response = (ril_signal_quality_rsp_t *)rsp->cmd_param;
+     if (rsp->res_code == RIL_RESULT_CODE_OK && response != NULL) {
+        rssi = (int)response->rssi;
+        debug_print("csq:%d\r\n",rssi);
+     }
+    return 0;
+}
+
+
+
+//cellID 回调函数
+static int32_t query_cellid_callback(ril_cmd_response_t *cmd_response)
+{ 
+    int32_t cell_id;
+    uint8_t id[20];
+    if(RIL_EXECUTE_MODE == cmd_response->mode && RIL_RESULT_CODE_OK == cmd_response->res_code)
+    {
+        ril_query_network_state_rsp_t *param = (ril_query_network_state_rsp_t*)cmd_response->cmd_param;
+        if((param->sc_info != NULL)&&(param->sc_info->sc_cellid != NULL)){ 
+            //debug_print("sc_cellid:%s\r\n", param->sc_info->sc_cellid ? param->sc_info->sc_cellid : "(omitted)");
+           // memcpy(id, param->sc_info->sc_cellid, strlen(param->sc_info->sc_cellid));
+            get_data_to_hex(id, param->sc_info->sc_cellid, strlen(param->sc_info->sc_cellid));
+            debug_print("cellid:%s\r\n", id);
+            //_itoa(cell_id, id, 10);
+            //debug_print("id is %s\r\n", id);
+        }
+    }
+    return 0;
+}
+
+
+
+
+//获取电池电压
+static uint32_t get_battery_voltage(void)
+{
+    uint32_t adc_data;
+    uint32_t adc_voltage;
+    uint32_t battery_voltage;
+    hal_adc_init();
+    hal_adc_get_data_polling(HAL_ADC_CHANNEL_6, &adc_data);
+    hal_adc_deinit();
+    adc_voltage = (adc_data * 1400) / 4095;
+    battery_voltage = adc_voltage * 4;
+    return battery_voltage;
+}
+
+
+
+#endif
+#if 1
+//正常亮灯函数
+#if 0
+void  gpio_application(void)
+{   
+    hal_gpt_init(HAL_GPT_1);
+    hal_gpt_register_callback(HAL_GPT_1,gpio_application,NULL);
+    hal_gpt_start_timer_ms(HAL_GPT_1,1000,HAL_GPT_TIMER_TYPE_ONE_SHOT);
+    hal_gpio_init(HAL_GPIO_26);
+    hal_pinmux_set_function(HAL_GPIO_26,1);
+    hal_gpio_set_direction(HAL_GPIO_26,HAL_GPIO_DIRECTION_OUTPUT);
+    hal_gpio_set_output(HAL_GPIO_26_PMU_GOTO_SLEEP,HAL_GPIO_DATA_HIGH);
+}
+
+
+#endif 
+
+//轮询模式下的uart命令（改配置已在sys_init.c中定义好了）
+#if 0
+
+void uart_poll_application(void)
+{    
+    while(1)
+    {  
+        
+        char  buffer[10];
+        hal_uart_receive_polling(HAL_UART_3,buffer,10);
+        hal_uart_send_polling(HAL_UART_3,buffer,10);
+        vTaskDelay(1000 / portTICK_RATE_MS);
+    }
+    //vTaskDelete(NULL);
+}   
+
+
+
+
+#endif
+
+
+//API函数 DMA完整版
+#if  0
+static volatile uint32_t receive_notice=0;
+static volatile uint32_t send_notice=0;
+static char rx_vfifo_buffer[512] __attribute__ ((section(".noncached_zidata")));
+static char tx_vfifo_buffer[512] __attribute__ ((section(".noncached_zidata")));
+static void user_uart_callback(hal_uart_callback_event_t status, void *user_data)
+{  if(status == HAL_UART_EVENT_READY_TO_WRITE)
+       send_notice = 1;
+   else if(status == HAL_UART_EVENT_READY_TO_READ)
+       receive_notice = 1;
+}
+static void uart_dma_application(void)
+{  
+ 
+   hal_uart_config_t uart_config;
+    char buffer[64];
+   char *pbuf;
+   uint32_t left, snd_cnt, rcv_cnt;
+   hal_uart_dma_config_t dma_config;
+   char uart_prompt[] = "UART DMA mode begin\n";
+   uart_config.baudrate = HAL_UART_BAUDRATE_115200;
+   uart_config.parity = HAL_UART_PARITY_NONE;
+   uart_config.stop_bit = HAL_UART_STOP_BIT_1;
+   uart_config.word_length = HAL_UART_WORD_LENGTH_8;
+   hal_uart_init(HAL_UART_3, &uart_config);
+   dma_config.receive_vfifo_alert_size = 50;
+   dma_config.receive_vfifo_buffer = rx_vfifo_buffer;
+   dma_config.receive_vfifo_buffer_size = 512;
+   dma_config.receive_vfifo_threshold_size = 128;
+   dma_config.send_vfifo_buffer = tx_vfifo_buffer;
+   dma_config.send_vfifo_buffer_size = 512;
+   dma_config.send_vfifo_threshold_size = 51;
+   hal_uart_set_dma(HAL_UART_3, &dma_config);
+   hal_uart_register_callback(HAL_UART_3,user_uart_callback, NULL);
+    
+   hal_uart_send_dma(HAL_UART_3, uart_prompt, sizeof(uart_prompt));
+   vTaskDelay(1000 / portTICK_RATE_MS);
+   hal_uart_deinit(HAL_UART_3);
+ }
+
+
+#endif
+
+
+
+
+
+// 通过软延时实现灯闪
+#endif
+void light()
+{  
+   //ril_show_pdp_address_req_t req;
+   PSM_Call_interface(1);
+  for(int i=1;i<2;i++)
+  {
+   gpio_init(26,1);
+   vTaskDelay(1000 / portTICK_RATE_MS);
+   gpio_init(26,0);
+   vTaskDelay(1000 / portTICK_RATE_MS);
+  }
+     ril_request_query_network_state(RIL_EXECUTE_MODE,0,query_cellid_callback,NULL);
+     vTaskDelay(1000 / portTICK_RATE_MS);
+     ril_request_serial_number(RIL_EXECUTE_MODE,1,query_imei_callback,NULL);
+     vTaskDelay(1000 / portTICK_RATE_MS);
+     ril_request_imsi(RIL_ACTIVE_MODE,query_imsi_callback,NULL);
+     
+     vTaskDelay(1000 / portTICK_RATE_MS);
+     debug_print("battery_voltage:%d",get_battery_voltage());
+     vTaskDelay(1000 / portTICK_RATE_MS);
+     //ril_request_show_pdp_address(RIL_ACTIVE_MODE,&req,ip_callback,NULL);
+     vTaskDelay(1000 / portTICK_RATE_MS);
+     ril_request_signal_quality(RIL_ACTIVE_MODE,query_csq_callback,NULL);
+}
+
+
+
+
+
+
+static void my_function(void *para)
+{   
+     //gpio_application();
+     //gnss_fota_uart_init();
+     //gnss_fota_uart_get_byte();
+    //uart_poll_application();
+     dma_uart_config();
+    //uart_dma_application();
+     light();
+    //uart_init();
+    
+    vTaskDelay(1000 / portTICK_RATE_MS);
+    vTaskDelete(NULL);
+
+}
+
+
+
+void  realize_function(void)
+{
+    xTaskCreate( my_function,
+       "function", 
+        (1024 * 2)/sizeof(uint8_t),
+        NULL,
+        1,
+        NULL);
+}
+

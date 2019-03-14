@@ -1,0 +1,46 @@
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+ main ()
+{    int a,b,c,sum;
+  printf("输入某年某月某日:");
+  scanf("%d%d%d",&a,&b,&c);
+   if (a%4==0)/*闰年366*/
+ {  
+     switch (b)
+    {
+     case 1:sum=c;printf("%d\n",sum);break; 
+     case 2:sum=31+c;printf("%d\n",sum);break;
+     case 3:sum=60+c;printf("%d\n",sum);break;
+     case 4:sum=91+c;printf("%d\n",sum);break;
+     case 5:sum=121+c;printf("%d\n",sum);break;
+     case 6:sum=152+c;printf("%d\n",sum);break;
+     case 7:sum=182+c;printf("%d\n",sum);break;
+     case 8:sum=213+c;printf("%d\n",sum);break;
+     case 9:sum=244+c;printf("%d\n",sum);break;
+     case 10:sum=274+c;printf("%d\n",sum);break;
+     case 11:sum=305+c;printf("%d\n",sum);break;
+     case 12:sum=335+c;printf("%d\n",sum);break;
+     default:printf("错误\n");
+     }
+}
+else    
+{       
+    switch(b)/*平年*/
+{
+     case 1:sum=c;printf("%d\n",sum);break; 
+     case 2:sum=31+c;printf("%d\n",sum);break;
+     case 3:sum=59+c;printf("%d\n",sum);break;
+     case 4:sum=90+c;printf("%d\n",sum);break;
+     case 5:sum=120+c;printf("%d\n",sum);break;
+     case 6:sum=151+c;printf("%d\n",sum);break;
+     case 7:sum=181+c;printf("%d\n",sum);break;
+     case 8:sum=212+c;printf("%d\n",sum);break;
+     case 9:sum=243+c;printf("%d\n",sum);break;
+     case 10:sum=273+c;printf("%d\n",sum);break;
+     case 11:sum=304+c;printf("%d\n",sum);break;
+     case 12:sum=334+c;printf("%d\n",sum);break;
+     default:printf("错误\n");
+     }
+}
+}

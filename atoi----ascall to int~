@@ -1,0 +1,50 @@
+#include  "stdio.h"
+#include   "string.h"
+
+
+int _atoi(const char *str)
+{
+    int s = 0;
+    int flag = 0;
+
+    while (*str == ' ')
+    {
+        str++;
+    }
+
+    if (*str == '-' || *str == '+')
+    {
+        if (*str == '-')
+            flag = 1;
+         str++;
+    }
+if (*str == '-' || *str == '+')
+    {
+        if (*str == '-')
+            flag = 1;
+         str++;
+    }
+
+    while (*str >= '0' && *str <= '9')
+    {
+        s = s*10 + (*str - '0');
+        str++;
+        if (s < 0) {
+            s = 2147483647;
+            break;
+        }
+    }
+
+    return s * (flag ? -1 : 1);
+}
+
+
+main()
+{  
+    char  a[]="5";
+    char  b[]="7";
+    int  c;
+    c=_atoi(a)+_atoi(b);
+     printf("%d\n",c);
+}
+   

@@ -1,0 +1,14 @@
+#include "stdio.h"
+  
+int fun(int n)
+{ int i;
+  if (n==1)
+  { i=10;
+   return  i;}
+ else 
+   return fun(n-1)+2;}
+  main()
+{ 
+  printf("%d\n",fun(5));
+}
+

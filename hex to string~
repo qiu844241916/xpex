@@ -1,0 +1,26 @@
+#include "string.h"
+#include "stdio.h"
+
+
+void get_data_from_hex(char *out, char *in, int len)     
+{
+	int i;
+	unsigned long c;
+	char temp[3] = {0};
+
+	for (i = 0; i < len; i++) 
+	{
+		memcpy(temp, in + i * 2, 2);
+		c = strtoul(temp, 0, 16);
+		out[i] = (char)c;
+	}
+}
+
+
+ void main()
+{ char k[]={"64846548464"};
+  char  h[10];
+  get_data_from_hex(h,k,20);
+printf("%s\n",h);
+}
+

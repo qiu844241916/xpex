@@ -1,0 +1,14 @@
+#include <math.h>
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+
+main()
+{  
+  char i='*';
+printf("%3c\n",i);
+printf("%2c%c%c\n",i,i,i);
+printf("%c%c%c%c%c\n",i,i,i,i,i);
+printf("%2c%c%c\n",i,i,i);
+printf("%3c\n",i);
+}

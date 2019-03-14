@@ -1,0 +1,33 @@
+#include "stdio.h"
+char arr,date;
+int len;
+void  detele(char arr[],int len,char date);
+main()
+{   int len=10;
+     date='a';
+   char a[]={"abcdefghij"};
+   int t;
+   detele(a,10,date);
+ for(t=0;t<len;t++)
+{
+printf("%c\n",a[t]);
+}
+
+}
+
+void detele(char *arr,int len,char date)
+{  int i=0;
+   int j=0;
+    for(i=0;i<len;i++)
+{   if(arr[i]==date)
+    {
+    for(j=i;j+1<len;j++)
+{
+     arr[i]==arr[i+1];
+}
+  len--;
+   --i;
+ }
+}
+
+}

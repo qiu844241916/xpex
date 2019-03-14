@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+void main()
+{
+ struct node
+{ int  date;
+  struct node *next;
+}*head,*p,*q;
+p=(struct node *)malloc(sizeof(struct node));
+  p->date=10;
+head->p;
+q=(struct node *)malloc(sizeof(struct node));
+  q->date=20;
+  q->next=NULL;
+  P->next=q;
+free(P);
+free(q);
+}
+
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+void main()
+{
+ struct node
+{ int  date;
+  struct node *next;
+};
+struct node *s,*head,*g;
+s=(struct node *)malloc(sizeof(struct node));
+  s->date=17;
+head=s;
+
+g=(struct node *)malloc(sizeof(struct node));
+  g->date=20;
+  g->next=NULL;
+  s->next=g;
+
+ int sum=0;
+s=head;
+while (s!=NULL)
+{sum+=s->date;
+s=s->next;}
+printf("%d\n",sum);
+}
+
+

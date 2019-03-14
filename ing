@@ -1,0 +1,97 @@
+#include "stdio.h"
+#include "stdlib.h"
+#include "hal_gpio.h"
+#include "hal_sleep_driver.h"
+#include "stdarg.h"
+#include  "hal_gpt.h"
+#include "hal_uart.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "task_def.h"
+#include "hal_platform.h"
+#include "apb_proxy.h"
+
+typedef unsigned char uint8_t;
+
+#define  function 1
+
+
+int8_t debug_print(const char *fmt, ...)
+{ 
+    int n;   
+    va_list ap;   
+    apb_proxy_at_cmd_result_t response; 
+    char response_data[100];  
+    va_start(ap, fmt); 
+    n = vsnprintf(response_data,100,fmt,ap);   
+    va_end(ap);      
+    if(n >-1 && n < 100) 
+    {      
+        response.result_code = APB_PROXY_RESULT_UNSOLICITED;   
+        response.pdata = response_data;  
+        response.length = strlen(response.pdata);   
+        response.cmd_id = APB_PROXY_INVALID_CMD_ID; 
+        apb_proxy_send_at_cmd_result(&response);   
+        return 1; 
+     }    
+    return 0;  
+}
+
+
+
+
+
+void  gpio_application(void)
+{   
+    hal_gpt_init(HAL_GPT_1);
+    hal_gpt_register_callback(HAL_GPT_1,gpio_application,NULL);
+    hal_gpt_start_timer_ms(HAL_GPT_1,1000,HAL_GPT_TIMER_TYPE_ONE_SHOT);
+    hal_gpio_init(HAL_GPIO_26);
+    hal_pinmux_set_function(HAL_GPIO_26,1);
+    hal_gpio_set_direction(HAL_GPIO_26,HAL_GPIO_DIRECTION_OUTPUT);
+    hal_gpio_set_output(HAL_GPIO_26_PMU_GOTO_SLEEP,HAL_GPIO_DATA_HIGH);
+}
+
+void uart_poll_application(void)
+{
+    hal_uart_config_t  uart_config;
+    char data="sadasffa";
+    char buffer[10];
+    uart_config.baudrate= HAL_UART_BAUDRATE_115200;
+    uart_config.parity= HAL_UART_PARITY_NONE;
+    uart_config.stop_bit= HAL_UART_STOP_BIT_1;
+    uart_config.word_length= HAL_UART_WORD_LENGTH_8;
+    
+    
+    hal_uart_set_format(HAL_UART_3，&uart_config);
+    debug_print("%s");
+  
+    
+}   
+
+
+static void my_function(void *para)
+{
+     
+    
+     gpio_application();
+     uart_poll_application();
+    
+    vTaskDelay(1000 / portTICK_RATE_MS);
+    vTaskDelete(NULL);
+
+    
+
+
+
+}
+
+void  realize_function(void)
+{
+    xTaskCreate( my_function ,
+       "function",
+        (1024 * 2)/sizeof(uint8_t),
+        NULL,
+        1,
+        NULL);
+}

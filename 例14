@@ -1,0 +1,22 @@
+
+
+  #include <math.h>
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+
+ main ()
+{
+ int  n,k,i;
+ 
+for(n=1;n<=1000;n++)
+for(k=1;k<=n/2;k++)
+{    while(n%k==0)
+      {printf("%d\n",k);
+          n=n/k;
+       sum+=k;
+  if(sum==n) printf("%d\n",n);
+    }
+     
+}
+}

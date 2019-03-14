@@ -1,0 +1,21 @@
+
+
+  #include <math.h>
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+
+ main ()
+{
+ int  n,k,i;
+  printf("输入一个数ｎ:");
+  scanf("%d\n",&n);
+
+for(k=2;k<=n;k++)
+{    while(n%k==0)
+      {printf("%d\n",k);
+          n=n/k;
+    }
+     
+}
+}

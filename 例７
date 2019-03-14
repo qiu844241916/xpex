@@ -1,0 +1,15 @@
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+int main ()
+{  char  a=126,b=125;
+   printf("%c%c%c%c\n",a,b,a,b);
+   printf("%c%c%c%c\n",b,a,b,a);
+   printf("%c%c%c%c\n",a,b,a,b);
+   printf("%c%c%c%c\n",b,a,b,a);
+   printf("%c%c%c%c\n",a,b,a,b);
+   printf("%c%c%c%c\n",b,a,b,a);
+   printf("%c%c%c%c\n",a,b,a,b);
+   printf("%c%c%c%c\n",b,a,b,a);
+ return 0;
+}

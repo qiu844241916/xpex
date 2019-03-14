@@ -1,0 +1,17 @@
+#include "string.h"
+#include "stdio.h"
+
+void str_to_hex(char *out, char *in, int len) // "866256" -> "383636323536"
+{
+    int i;
+    for (i = 0; i < len; i++) {
+        sprintf(out + (i * 2), "%x", in[i]);
+    }
+}
+
+  main()
+{  char k[]={"866256"};
+   char h[20];
+str_to_hex(h,k,10);
+printf("%s\n",h);
+}

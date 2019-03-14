@@ -1,0 +1,17 @@
+#include "stdio.h"
+ main()
+{ int i,j,sum=0;
+ for(j=1;j<=100;j++)
+{   
+      sum=0;//初始化ｓｕｍ
+  for(i=1;i<=j;i++)
+ {    
+     if((j%i==0)&&(i!=1)&&(i!=j))//是否有能被整除的数（除１和本身之外）
+     {    
+       　sum+=i;
+     }
+    } 
+     if(sum==0)
+     printf("%d\n",j);
+ }
+}

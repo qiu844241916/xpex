@@ -1,0 +1,47 @@
+#include "stdio.h"
+#include "string.h"
+
+
+ void String_ChangDECToASCII(int data, char *string,char *length)
+{
+	char i;
+	int y;
+	int div;
+	char offset;
+	
+	offset = 0;
+	div = 1000000000;
+	for(i = 0; i<10;i++)
+	{
+		y = data/div;
+		div /=10;
+		if(y > 0 || i==9)
+		{
+			*(string + offset) = (y%10) + '0';
+			offset++;
+		}
+	}
+	*length = offset;
+}
+
+int String_SizeGet(char *str)
+{
+	int i;
+	for(i = 0; i < 512; i++)
+	{
+		if(*(str+i) == '\0')
+		{
+			return i+1;
+		}
+	}
+	return 0;
+}
+
+int  main()
+ {    
+    int date=0x77; 
+   char *string="869976030148119", *hex="0E97";
+    String_ChangDECToASCII(date,string,hex);
+return  0;
+}
+

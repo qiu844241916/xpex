@@ -1,0 +1,13 @@
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+int main ()
+{
+ float i=1,j=1,sum=1;
+ for (sum;sum<21;sum++)
+{ printf("%f%f\n",i,j);
+    i=i+j;
+    j=i+j;
+   
+}
+}

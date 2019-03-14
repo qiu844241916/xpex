@@ -1,0 +1,14 @@
+#include "stdio.h"
+ main()
+{ int i,j,sum=0;
+  printf("enter a munber:");
+  scanf("%d\n",&j);
+  for(i=1;i<=j;i++)
+ {    
+     if((j%i==0)&&(i!=1)&&(i!=j))
+{   printf("%d\n",i);sum+=i;}
+       
+} 
+  if(sum==0)
+    printf("su shu\n");
+}
